@@ -1,0 +1,26 @@
+global:
+  resolve_timeout: 5m
+  slack_api_url: 'https://hooks.slack.com/services/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'
+route:
+  group_by: ['job']
+  group_wait: 45s
+  group_interval: 3m
+  repeat_interval: 10m
+  receiver: 'webhook'
+  routes:
+  - receiver: 'slack'
+    group_wait: 10s
+    group_by: [srcIP]
+    match:
+      denied_packet_type: no_quarantine
+receivers:
+- name: 'webhook'
+  webhook_configs:
+  - url: 'http://calico-alertmanager-webhook:30501/'
+- name: 'slack'
+  slack_configs:
+  - channel: '#csa-burlington-mar19'
+    title: "Source IP: {{ .GroupLabels.srcIP }}\n{{ range .Alerts }}- {{ .Annotations.summary }}\n{{ end }}"
+    title_link: "https://YourCNXManagerExternalIP:8080/policies/tiered"
+    color: "warning"
+    text: "<!channel>\n{{ range .Alerts }}- {{ .Annotations.description }}\n{{ end }}"
